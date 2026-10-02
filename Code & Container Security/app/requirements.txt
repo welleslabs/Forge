@@ -1,0 +1,12 @@
+# Nimbus AI Chat Service — pinned dependencies
+# Pins are intentionally old for the shift-left demo scan.
+fastapi==0.68.0
+flask==2.0.1
+requests==2.25.1
+urllib3==1.26.4
+pyyaml==5.3.1
+pillow==8.1.0
+langchain==0.0.171
+cryptography==3.3.2
+jinja2==2.11.2
+numpy==1.21.0

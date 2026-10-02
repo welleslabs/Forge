@@ -1,0 +1,62 @@
+{
+  "registry": "trend-vision-one-ai-asset-registry",
+  "version": "2026.06",
+  "assets": [
+    {
+      "id": "AST-0001",
+      "type": "model",
+      "name": "credit-risk-scoring-v4 (XGBoost)",
+      "owner": "ml-platform",
+      "environment": "production",
+      "data_class": "PII"
+    },
+    {
+      "id": "AST-0002",
+      "type": "model",
+      "name": "support-triage-llm (llama-3.1-8b ft)",
+      "owner": "cx-engineering",
+      "environment": "staging",
+      "data_class": "customer-content"
+    },
+    {
+      "id": "AST-0003",
+      "type": "endpoint",
+      "name": "api.internal/v1/inference",
+      "owner": "ml-platform",
+      "environment": "production",
+      "data_class": "PII"
+    },
+    {
+      "id": "AST-0004",
+      "type": "data-store",
+      "name": "s3://ml-feature-store-prod",
+      "owner": "data-engineering",
+      "environment": "production",
+      "data_class": "PII"
+    },
+    {
+      "id": "AST-0005",
+      "type": "data-store",
+      "name": "rag-kb-prod (pgvector)",
+      "owner": "cx-engineering",
+      "environment": "production",
+      "data_class": "internal"
+    },
+    {
+      "id": "AST-0006",
+      "type": "ai-service",
+      "name": "OpenAI API (approved tenant)",
+      "owner": "it-governance",
+      "environment": "saas",
+      "data_class": "restricted"
+    },
+    {
+      "id": "AST-0007",
+      "type": "ai-service",
+      "name": "Azure OpenAI gpt-4o (EU region)",
+      "owner": "it-governance",
+      "environment": "saas",
+      "data_class": "restricted"
+    }
+  ]
+}

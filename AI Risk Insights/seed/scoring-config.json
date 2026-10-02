@@ -1,0 +1,18 @@
+{
+  "stage_weights": {
+    "development": 0.35,
+    "infrastructure": 0.4,
+    "runtime": 0.25
+  },
+  "severity_points": {
+    "critical": 25,
+    "high": 10,
+    "medium": 4,
+    "low": 1
+  },
+  "live_signal_modifiers": {
+    "public_tunnel": 8,
+    "local_model_unmanaged": 4
+  },
+  "baseline_unassessed": 20
+}

@@ -1,0 +1,283 @@
+{
+  "account": "acme-ai-prod",
+  "account_id": "418823007641",
+  "region": "us-east-1",
+  "snapshot": "2026-07-06T23:11:04Z",
+  "provider": "aws",
+  "environment": "production",
+  "storage_buckets": [
+    {
+      "id": "acme-rag-documents",
+      "type": "object-store",
+      "purpose": "RAG knowledge base — source documents indexed by the vector DB",
+      "public_access": true,
+      "public_access_reason": "bucket policy grants s3:GetObject to Principal \"*\"",
+      "encryption": "SSE-S3",
+      "versioning": true,
+      "objects": 214803,
+      "size_gb": 612,
+      "sensitivity": "confidential",
+      "tags": {"app": "rag-pipeline", "data-class": "internal-ip"}
+    },
+    {
+      "id": "acme-training-data",
+      "type": "object-store",
+      "purpose": "Fine-tuning corpus (customer transcripts, labeled)",
+      "public_access": false,
+      "encryption": "none",
+      "versioning": false,
+      "objects": 58120,
+      "size_gb": 1840,
+      "sensitivity": "restricted",
+      "tags": {"app": "model-training", "data-class": "customer-pii"}
+    },
+    {
+      "id": "acme-model-artifacts",
+      "type": "object-store",
+      "purpose": "Trained model weights and checkpoints",
+      "public_access": false,
+      "encryption": "SSE-KMS",
+      "versioning": true,
+      "objects": 942,
+      "size_gb": 388,
+      "sensitivity": "restricted",
+      "tags": {"app": "model-registry", "data-class": "proprietary"}
+    },
+    {
+      "id": "acme-inference-logs",
+      "type": "object-store",
+      "purpose": "Prompt/response logs from the inference tier",
+      "public_access": false,
+      "encryption": "SSE-KMS",
+      "versioning": false,
+      "objects": 3105567,
+      "size_gb": 274,
+      "sensitivity": "confidential",
+      "tags": {"app": "observability", "data-class": "prompt-logs"}
+    },
+    {
+      "id": "acme-eval-datasets",
+      "type": "object-store",
+      "purpose": "Held-out evaluation datasets",
+      "public_access": false,
+      "encryption": "SSE-KMS",
+      "versioning": true,
+      "objects": 1207,
+      "size_gb": 44,
+      "sensitivity": "internal",
+      "tags": {"app": "model-eval", "data-class": "internal"}
+    },
+    {
+      "id": "acme-terraform-state",
+      "type": "object-store",
+      "purpose": "Infrastructure-as-code state backend",
+      "public_access": false,
+      "encryption": "SSE-KMS",
+      "versioning": true,
+      "objects": 63,
+      "size_gb": 1,
+      "sensitivity": "restricted",
+      "tags": {"app": "platform", "data-class": "infra-secrets"}
+    }
+  ],
+  "iam_roles": [
+    {
+      "id": "acme-inference-workload",
+      "type": "iam-role",
+      "purpose": "Attached to the inference EC2/EKS workload",
+      "trust": "ec2.amazonaws.com",
+      "policies": [
+        {
+          "name": "InlineModelInvoke",
+          "statements": [
+            {"effect": "Allow", "action": "*", "resource": "*"}
+          ]
+        }
+      ],
+      "access_keys": [],
+      "mfa": "n/a",
+      "tags": {"app": "inference", "tier": "workload"}
+    },
+    {
+      "id": "acme-data-eng-ci",
+      "type": "iam-role",
+      "purpose": "CI pipeline for the training data ingest jobs",
+      "trust": "arn:aws:iam::418823007641:root",
+      "policies": [
+        {
+          "name": "DataEngCI",
+          "statements": [
+            {"effect": "Allow", "action": "s3:GetObject", "resource": "arn:aws:s3:::acme-training-data/*"},
+            {"effect": "Allow", "action": "s3:PutObject", "resource": "arn:aws:s3:::acme-training-data/*"}
+          ]
+        }
+      ],
+      "access_keys": [
+        {"id": "AKIA5A5EXAMPLE0DENG1", "created": "2025-12-14", "age_days": 205, "last_used": "2026-01-09"}
+      ],
+      "mfa": "disabled",
+      "tags": {"app": "data-eng", "tier": "ci"}
+    },
+    {
+      "id": "acme-vector-db-svc",
+      "type": "iam-role",
+      "purpose": "Service role for the vector database",
+      "trust": "arn:aws:iam::418823007641:role/acme-vector-db-svc",
+      "policies": [
+        {
+          "name": "VectorDBReadRAG",
+          "statements": [
+            {"effect": "Allow", "action": "s3:GetObject", "resource": "arn:aws:s3:::acme-rag-documents/*"}
+          ]
+        }
+      ],
+      "access_keys": [],
+      "mfa": "n/a",
+      "tags": {"app": "vector-db", "tier": "service"}
+    },
+    {
+      "id": "acme-model-registry-ro",
+      "type": "iam-role",
+      "purpose": "Read-only access to model artifacts for deploy jobs",
+      "trust": "arn:aws:iam::418823007641:role/acme-deploy",
+      "policies": [
+        {
+          "name": "ModelRegistryRead",
+          "statements": [
+            {"effect": "Allow", "action": "s3:GetObject", "resource": "arn:aws:s3:::acme-model-artifacts/*"}
+          ]
+        }
+      ],
+      "access_keys": [],
+      "mfa": "n/a",
+      "tags": {"app": "model-registry", "tier": "deploy"}
+    },
+    {
+      "id": "acme-observability-ro",
+      "type": "iam-role",
+      "purpose": "Read-only for the observability stack",
+      "trust": "arn:aws:iam::418823007641:role/acme-grafana",
+      "policies": [
+        {
+          "name": "ObservabilityRead",
+          "statements": [
+            {"effect": "Allow", "action": "cloudwatch:GetMetricData", "resource": "*"},
+            {"effect": "Allow", "action": "s3:GetObject", "resource": "arn:aws:s3:::acme-inference-logs/*"}
+          ]
+        }
+      ],
+      "access_keys": [],
+      "mfa": "n/a",
+      "tags": {"app": "observability", "tier": "readonly"}
+    }
+  ],
+  "security_groups": [
+    {
+      "id": "sg-inference-endpoint",
+      "type": "security-group",
+      "purpose": "Fronts the managed LLM inference endpoint",
+      "attached_to": "svc-llm-endpoint",
+      "ingress": [
+        {"proto": "tcp", "port": 8443, "cidr": "0.0.0.0/0", "desc": "inference API (HTTPS)"}
+      ],
+      "tags": {"app": "inference", "exposure": "internet"}
+    },
+    {
+      "id": "sg-vector-db",
+      "type": "security-group",
+      "purpose": "Vector database cluster",
+      "attached_to": "svc-vector-db",
+      "ingress": [
+        {"proto": "tcp", "port": 6333, "cidr": "10.20.0.0/16", "desc": "vector query (VPC only)"}
+      ],
+      "tags": {"app": "vector-db", "exposure": "internal"}
+    },
+    {
+      "id": "sg-training-cluster",
+      "type": "security-group",
+      "purpose": "GPU training cluster",
+      "attached_to": "training-nodes",
+      "ingress": [
+        {"proto": "tcp", "port": 22, "cidr": "10.20.4.0/24", "desc": "SSH from bastion subnet"}
+      ],
+      "tags": {"app": "training", "exposure": "internal"}
+    },
+    {
+      "id": "sg-bastion",
+      "type": "security-group",
+      "purpose": "Ops bastion host",
+      "attached_to": "bastion",
+      "ingress": [
+        {"proto": "tcp", "port": 22, "cidr": "203.0.113.14/32", "desc": "SSH from corp VPN egress IP"}
+      ],
+      "tags": {"app": "platform", "exposure": "restricted"}
+    }
+  ],
+  "ai_services": [
+    {
+      "id": "svc-llm-endpoint",
+      "type": "ai-endpoint",
+      "name": "acme-llm-prod (managed LLM inference)",
+      "model": "acme-instruct-13b",
+      "public_access": true,
+      "authentication": "none",
+      "security_group": "sg-inference-endpoint",
+      "reads_from": ["acme-rag-documents", "acme-vector-db"],
+      "registered": true,
+      "guardrails": false,
+      "tags": {"app": "inference", "tier": "prod"}
+    },
+    {
+      "id": "svc-vector-db",
+      "type": "vector-db",
+      "name": "acme-vectors (Qdrant-compatible vector store)",
+      "model": "n/a",
+      "public_access": false,
+      "authentication": "api-key",
+      "security_group": "sg-vector-db",
+      "reads_from": ["acme-rag-documents"],
+      "registered": true,
+      "guardrails": "n/a",
+      "tags": {"app": "vector-db", "tier": "prod"}
+    },
+    {
+      "id": "svc-shadow-endpoint",
+      "type": "ai-endpoint",
+      "name": "team-llama-experiment (undocumented)",
+      "model": "llama-derivative-unknown",
+      "public_access": true,
+      "authentication": "none",
+      "security_group": "sg-inference-endpoint",
+      "reads_from": ["acme-training-data"],
+      "registered": false,
+      "guardrails": false,
+      "tags": {"app": "unregistered", "tier": "shadow"}
+    },
+    {
+      "id": "svc-eval-runner",
+      "type": "ai-batch",
+      "name": "acme-eval-runner (offline evaluation harness)",
+      "model": "acme-instruct-13b",
+      "public_access": false,
+      "authentication": "iam",
+      "security_group": "sg-training-cluster",
+      "reads_from": ["acme-eval-datasets", "acme-model-artifacts"],
+      "registered": true,
+      "guardrails": "n/a",
+      "tags": {"app": "model-eval", "tier": "batch"}
+    },
+    {
+      "id": "svc-guarded-endpoint",
+      "type": "ai-endpoint",
+      "name": "acme-support-copilot (internal)",
+      "model": "acme-instruct-13b",
+      "public_access": false,
+      "authentication": "oidc",
+      "security_group": "sg-vector-db",
+      "reads_from": ["acme-vector-db"],
+      "registered": true,
+      "guardrails": true,
+      "tags": {"app": "support-copilot", "tier": "prod"}
+    }
+  ]
+}

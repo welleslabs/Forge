@@ -1,0 +1,93 @@
+{
+  "version": "2026.07",
+  "tenant": "trend-demo",
+  "approved_services": [
+    {
+      "service": "ChatGPT Enterprise",
+      "host": "chatgpt.example-approved.com",
+      "contract": "enterprise agreement · zero-retention · DPA on file"
+    },
+    {
+      "service": "Internal Copilot",
+      "host": "copilot.internal.example.corp",
+      "contract": "internal deployment · data never leaves tenant"
+    }
+  ],
+  "blocked_categories": [
+    "shadow-ai",
+    "prompt-injection",
+    "sensitive-upload",
+    "credential-api-key",
+    "compensation-data",
+    "source-code"
+  ],
+  "dlp_patterns": [
+    {
+      "id": "DLP-SSN-001",
+      "name": "US SSN",
+      "category": "pii-ssn",
+      "regex": "\\b\\d{3}-\\d{2}-\\d{4}\\b",
+      "action": "redact",
+      "severity": "high"
+    },
+    {
+      "id": "DLP-KEY-002",
+      "name": "API secret key",
+      "category": "credential-api-key",
+      "regex": "\\bsk-[A-Za-z0-9-]{12,}\\b",
+      "action": "block",
+      "severity": "critical"
+    },
+    {
+      "id": "DLP-COMP-003",
+      "name": "salary data",
+      "category": "compensation-data",
+      "regex": "(?i)(salary|compensation|payroll|comp\\s*band)[^\\n]{0,80}\\$\\s?\\d",
+      "action": "block",
+      "severity": "high"
+    },
+    {
+      "id": "DLP-CUST-004",
+      "name": "customer PII",
+      "category": "customer-record",
+      "regex": "(?i)\\b[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}\\b|\\bACCT-\\d{4,}\\b|\\b\\d{3}-555-\\d{4}\\b|card ending \\d{4}",
+      "action": "redact",
+      "severity": "high"
+    }
+  ],
+  "source_code_patterns": [
+    {
+      "id": "DLP-SRC-005",
+      "name": "source code",
+      "category": "source-code",
+      "regex": "(?m)^\\s*(def|class|import|from)\\s+\\w|BEGIN (RSA|EC) PRIVATE KEY",
+      "action": "block",
+      "severity": "high"
+    }
+  ],
+  "injection_patterns": [
+    {
+      "id": "INJ-001",
+      "name": "instruction override",
+      "regex": "(?i)ignore (all |any )?previous instructions"
+    },
+    {
+      "id": "INJ-002",
+      "name": "jailbreak / filter bypass",
+      "regex": "(?i)(disregard (all )?(safety|policy|your system)|developer mode|do anything now|jailbreak)"
+    }
+  ],
+  "redaction_rules": {
+    "replacement": "[REDACTED:{category}]",
+    "note": "Matched spans are replaced inline before egress; original text is never forwarded upstream."
+  },
+  "upload_rules": {
+    "allowed_kinds": ["document", "image", "presentation", "text"],
+    "blocked_kinds": [
+      {"kind": "source_code", "reason": "Proprietary source code may not leave the tenant"},
+      {"kind": "financial_spreadsheet", "reason": "Finance data is classified Restricted"},
+      {"kind": "database_export", "reason": "Bulk customer data export prohibited"},
+      {"kind": "credentials", "reason": "Secrets material prohibited"}
+    ]
+  }
+}

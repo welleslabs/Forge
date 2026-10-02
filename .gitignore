@@ -1,0 +1,23 @@
+# Build products and app bundles
+.build/
+*.dSYM/
+
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Generated scanner/debug output
+**/debug/
+*.log
+
+# Local secrets and environment files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# macOS metadata
+.DS_Store
